@@ -1,11 +1,19 @@
 import base64
+import crypto
+import sys
+sys.modules['Crypto'] = crypto
+
 from Crypto.Cipher import Blowfish
-import sqlite3 as sqlite
+import peewee
+from playhouse.sqlite_ext import SqliteExtDatabase
 import argparse
+from db.account import Account
+from db import dbProxy
 
 sqlite_file_name = ''
 export_file_name = ''
 
+db = None
 
 class Exporter:
     def __init__(self, sqlfilename, export_file=None):
@@ -14,10 +22,12 @@ class Exporter:
 
     def export_to_file(self):
         print self.sqlfilename
-        try:
-            self.sqlconn = sqlite.connect('sqlfilename')
-        except Exception:
-            pass
+        dbProxy.initialize(peewee.SqliteDatabase(self.sqlfilename))
+        dbProxy.connect()
+        for account in Account.select():
+            print account.hash
+
+
 
 
 if __name__ == '__main__':
@@ -26,7 +36,7 @@ if __name__ == '__main__':
     arg_paser.add_argument('exportfilename')
     args = arg_paser.parse_args()
     sqlite_file_name = args.sqlfilename
-    export_file_name = args.export_file_name
+    export_file_name = args.exportfilename
 
     exporter = Exporter(sqlite_file_name, export_file_name)
     exporter.export_to_file()
