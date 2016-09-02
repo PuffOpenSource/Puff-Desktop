@@ -1,18 +1,17 @@
-import base64
 import crypto
 import sys
 sys.modules['Crypto'] = crypto
 
-from Crypto.Cipher import Blowfish
 import peewee
-from playhouse.sqlite_ext import SqliteExtDatabase
 import argparse
 from db.account import Account
 from db import dbProxy
+from util import CryptoUtil
 
 sqlite_file_name = ''
 export_file_name = ''
 
+teststring = 'pNPyUDezG7cRcc7dmvUTk4AEVCjXL2TVVH5q24lTN//9y65aNVsLUpG2z00L1fa3'
 db = None
 
 class Exporter:
@@ -21,11 +20,10 @@ class Exporter:
         self.export_file = export_file
 
     def export_to_file(self):
-        print self.sqlfilename
         dbProxy.initialize(peewee.SqliteDatabase(self.sqlfilename))
         dbProxy.connect()
-        for account in Account.select():
-            print account.hash
+        for account in Account.select().where((Account.type != 20514) & (Account.type != 20512)):
+            print CryptoUtil.CryptoUtil.decrypt(account.hash, b'123456')
 
 
 
